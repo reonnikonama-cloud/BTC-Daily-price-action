@@ -53,7 +53,7 @@ def save_data(data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def send_discord_webhook(current_prices, base_prices, date_str):
-    fields = []
+    all_fields = []
     
     # ANSIカラーコードのエスケープシーケンス
     # 32m: 緑色 / 31m: 赤色 / 0m: リセット
@@ -88,19 +88,34 @@ def send_discord_webhook(current_prices, base_prices, date_str):
         else:
             value_str = f"現在値: ¥{curr:,.2f}\n```\n--- データなし ---\n```"
 
-        fields.append({
+        all_fields.append({
             "name": symbol,
             "value": value_str,
             "inline": True
         })
 
-    payload = {
-        "embeds": [{
-            "title": f"📊 Coincheck 前日比レポート ({date_str})",
+    # Discord Embedの制限（1つのEmbedあたりfieldsは最大25個）対策
+    # 25個ごとに分割して複数Embedを作成する
+    chunk_size = 25
+    embeds = []
+    
+    for i in range(0, len(all_fields), chunk_size):
+        fields_chunk = all_fields[i:i + chunk_size]
+        embed_title = f"📊 Coincheck 前日比レポート ({date_str})" if i == 0 else ""
+        
+        embed = {
             "color": 3447003,
-            "fields": fields,
-            "footer": {"text": "Coincheck API Status"}
-        }]
+            "fields": fields_chunk
+        }
+        if embed_title:
+            embed["title"] = embed_title
+        if i + chunk_size >= len(all_fields):
+            embed["footer"] = {"text": "Coincheck API Status"}
+            
+        embeds.append(embed)
+
+    payload = {
+        "embeds": embeds
     }
 
     req = Request(
@@ -113,6 +128,10 @@ def send_discord_webhook(current_prices, base_prices, date_str):
     try:
         with urlopen(req) as res:
             print("Discordへ通知を送信しました。")
+    except HTTPError as e:
+        # 詳細なエラー理由を出力するよう強化
+        error_body = e.read().decode('utf-8')
+        print(f"Discord送信エラー: HTTP Error {e.code}: {e.reason}\n詳細: {error_body}")
     except Exception as e:
         print(f"Discord送信エラー: {e}")
 
