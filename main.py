@@ -55,8 +55,8 @@ def send_discord_webhook(current_prices, open_prices, date_str):
     all_fields = []
 
     for pair in PAIRS:
-        curr = current_prices.get(pair)       # 23:59の終値
-        open_val = open_prices.get(pair)      # 00:00の始値
+        curr = current_prices.get(pair)       # 終値 (23:55時点)
+        open_val = open_prices.get(pair)      # 始値 (00:00時点)
         symbol = pair.split('_')[0].upper()
         
         if curr is None:
@@ -66,7 +66,7 @@ def send_discord_webhook(current_prices, open_prices, date_str):
             diff = curr - open_val
             change_pct = (diff / open_val) * 100
             
-            # 暴騰・暴落判定（例: 5%以上の変動で強調表示）
+            # 暴騰・暴落判定（5%以上の変動で強調表示）
             if change_pct >= 5.0:
                 icon = "🚀"  # 暴騰
             elif change_pct > 0:
@@ -130,7 +130,6 @@ def send_discord_webhook(current_prices, open_prices, date_str):
 def main():
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
-    current_hour = now.hour
     print(f"--- 処理開始 [{now.strftime('%Y-%m-%d %H:%M:%S')}] ---")
 
     current_prices = fetch_all_tickers()
@@ -142,22 +141,20 @@ def main():
     last_updated_date = saved_data.get("date")
     open_prices = saved_data.get("open_prices", {})
 
-    # 日付が変わっている、または始値データがない場合は保存処理
+    # 日付が変わっている、または始値データがない場合は始値保存処理
     if last_updated_date != today_str or not open_prices:
-        print(f"日付初回の実行を検知 ({today_str})。00:00時点の価格を始値 (Open) として保存します。")
+        print(f"日付初回の実行を検知 ({today_str})。現在の価格を始値 (Open) として保存します。")
         saved_data = {
             "date": today_str,
             "open_prices": current_prices
         }
         save_data(saved_data)
         
-        # 深夜（朝方）の実行時は保存のみで通知をスキップしたい場合はここで終了
-        # （00:00時点では変動率が0%のため通知不要）
-        if current_hour < 12:
-            print("始値データの記録が完了しました。Discord通知はスキップします。")
-            return
+        # 始値データを保存した段階では通知を送らずに終了（2重送信防止）
+        print("始値データの記録が完了しました。Discord通知はスキップします。")
+        return
 
-    # 23:59など夜間の実行時：保存されている00:00の始値と現在値（終値）を比較してDiscord通知
+    # 2回目以降の実行（23:55の終値取得時）：保存されている始値と終値を比較してDiscord通知
     print("終値を取得。始値と比較してDiscordへ通知を送信します。")
     send_discord_webhook(current_prices, open_prices, today_str)
 
