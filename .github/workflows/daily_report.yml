@@ -1,0 +1,36 @@
+name: Coincheck Daily Report
+
+on:
+  schedule:
+    # 毎日 UTC 14:55 (JST 23:55) に実行
+    - cron: '55 14 * * *'
+  workflow_dispatch: # 手動実行ボタンを有効化
+
+jobs:
+  run-report:
+    runs-python: true
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write  # price_data.json のコミットに必要
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Script
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python main.py
+
+      - name: Commit & Push updated price_data.json
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add price_data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update price_data.json [skip ci]" && git push)
