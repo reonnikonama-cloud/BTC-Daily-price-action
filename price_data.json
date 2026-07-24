@@ -1,0 +1,32 @@
+{
+  "date": "2026-07-24",
+  "prices": {
+    "btc_jpy": 10705010.0,
+    "eth_jpy": 308153.0,
+    "etc_jpy": 1185.0,
+    "lsk_jpy": 13.77,
+    "xrp_jpy": 182.0,
+    "xem_jpy": 0.0705,
+    "bch_jpy": 34515.0,
+    "mona_jpy": 11.5,
+    "iost_jpy": 0.11,
+    "chz_jpy": 2.4,
+    "imx_jpy": 20.0,
+    "shib_jpy": 0.00064,
+    "avax_jpy": 1041.0,
+    "fnct_jpy": 0.028,
+    "dai_jpy": 162.133,
+    "wbtc_jpy": 9900000.0,
+    "bril_jpy": 1.78,
+    "bc_jpy": 0.014,
+    "doge_jpy": 11.336,
+    "pepe_jpy": 0.000482,
+    "mask_jpy": 60.0,
+    "mana_jpy": 10.6,
+    "grt_jpy": 2.6,
+    "trx_jpy": 53.55,
+    "sol_jpy": 12400.0,
+    "fpl_jpy": 0.178,
+    "sui_jpy": 122.94
+  }
+}
