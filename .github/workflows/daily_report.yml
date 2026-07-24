@@ -2,7 +2,9 @@ name: Coincheck Daily Report
 
 on:
   schedule:
-    # 毎日 UTC 14:55 (JST 23:55) に実行
+    # JST 00:00 (UTC 15:00) ➔ 始値 (Open) 保存用
+    - cron: '0 15 * * *'
+    # JST 23:55 (UTC 14:55) ➔ 終値 (Close) 比較 & Discord通知用
     - cron: '55 14 * * *'
   workflow_dispatch: # 手動実行ボタンを有効化
 
@@ -11,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write  # コミット・プッシュ権限
+      contents: write  # price_data.json のコミット・プッシュに必要
 
     steps:
       - name: Checkout Repository
@@ -32,8 +34,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 変更があるファイルをすべて自動でステージング（ファイル名違いにも対応）
+          # 更新された price_data.json などの変更をすべてステージング
           git add -A
           
-          # 変更がある場合のみコミット＆プッシュ
+          # 変更がある場合のみコミット＆プッシュ（[skip ci] で無限ループ防止）
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update price data [skip ci]" && git push)
