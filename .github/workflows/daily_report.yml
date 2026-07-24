@@ -8,7 +8,6 @@ on:
 
 jobs:
   run-report:
-    runs-python: true
     runs-on: ubuntu-latest
     
     permissions:
