@@ -1,0 +1,38 @@
+name: Daily Report & Analytics Cleanup
+
+on:
+  schedule:
+    # JST 23:55 (UTC 14:55) に実行
+    - cron: '55 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-daily-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Daily Report, Analytics & Cleanup
+        env:
+          DISCORD_WEBHOOK_DAILY_REPORT: ${{ secrets.DISCORD_WEBHOOK_DAILY_REPORT }}
+          DISCORD_WEBHOOK_ANALYTICS: ${{ secrets.DISCORD_WEBHOOK_ANALYTICS }}
+          DISCORD_WEBHOOK_DEBUG_LOG: ${{ secrets.DISCORD_WEBHOOK_DEBUG_LOG }}
+        run: python main.py --report
+
+      - name: Commit Cleanup (Remove Temporary History & Save Open Prices)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: cleanup temporary history & update open prices" && git push)
