@@ -1,4 +1,5 @@
 import json
+import time  # ← time モジュールを追加
 from urllib.request import Request, urlopen
 from src.config import DISCORD_WEBHOOK_DAILY_REPORT, DISCORD_WEBHOOK_ANALYTICS, DISCORD_WEBHOOK_DEBUG_LOG
 
@@ -61,10 +62,11 @@ def send_daily_report_cards(current_data, open_prices, date_str):
         }
         embeds.append(card)
 
-    # 10件ずつ分割して送信 (Discord API制限回避)
+    # 10件ずつ分割して送信 (Discord API制限回避のためウェイトを追加)
     for i in range(0, len(embeds), 10):
         chunk = embeds[i:i+10]
         send_embed_to_discord(DISCORD_WEBHOOK_DAILY_REPORT, chunk)
+        time.sleep(1.5)  # ★Discordの連投制限回避のため1.5秒待機★
 
 def send_analytics_report(analytics_data, date_str):
     """激動時間帯解析の発表"""
