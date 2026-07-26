@@ -9,12 +9,25 @@ from src.discord import send_daily_report_cards, send_analytics_report, send_deb
 from src.storage import load_saved_data, save_data
 
 def handle_snapshot():
-    """30分スナップショット処理"""
+    """30分スナップショット処理（日付跨ぎの始値自動セット機能付き）"""
     now = datetime.now(JST)
+    today_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M")
+    
     current_data = fetch_coincheck_full_data()
-    if current_data:
-        record_30min_snapshot(current_data, time_str)
+    if not current_data:
+        send_debug_log("エラー: スナップショット用データの取得に失敗しました。")
+        return
+
+    # 1. 30分スナップショットログを追記
+    record_30min_snapshot(current_data, time_str)
+
+    # 2. 【日付跨ぎ判定】保存データの日付が「今日」でなければ、自動的に始値を更新して保存
+    saved_data = load_saved_data()
+    if saved_data.get("date") != today_str:
+        current_prices = {pair: data["last"] for pair, data in current_data.items()}
+        save_data({"date": today_str, "open_prices": current_prices})
+        send_debug_log(f"[{today_str} {time_str}] 新しい日付を検知したため、始値データを更新しました。")
 
 def handle_ranking():
     """23:50 独立騰落率ランキング送信"""
