@@ -16,7 +16,7 @@ def handle_snapshot():
     
     current_data = fetch_coincheck_full_data()
     if not current_data:
-        send_debug_log("エラー: スナップショット用データの取得に失敗しました。")
+        send_debug_log(f"⚠️ [{today_str} {time_str}] エラー: スナップショット用データの取得に失敗しました。")
         return
 
     # 1. 30分スナップショットログを追記
@@ -27,30 +27,38 @@ def handle_snapshot():
     if saved_data.get("date") != today_str:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
-        send_debug_log(f"[{today_str} {time_str}] 新しい日付を検知したため、始値データを更新しました。")
+        send_debug_log(f"ℹ️ [{today_str} {time_str}] 新しい日付を検知したため、始値データを自動更新・セットしました。")
 
 def handle_ranking():
-    """23:50 独立騰落率ランキング送信"""
+    """23:50 (JST) 独立騰落率ランキング送信"""
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M")
+
+    send_debug_log(f"🚀 [{today_str} {time_str}] 騰落率ランキング処理を開始しました。")
+
     current_data = fetch_coincheck_full_data()
     if not current_data:
-        send_debug_log("エラー: ランキング用データの取得に失敗しました。")
+        send_debug_log(f"🚨 [{today_str} {time_str}] エラー: ランキング用データの取得に失敗しました。")
         return
     
     saved_data = load_saved_data()
     open_prices = saved_data.get("open_prices", {})
     
     process_and_send_ranking(current_data, open_prices, today_str)
+    send_debug_log(f"✅ [{today_str} {time_str}] 騰落率ランキングの送信が正常に完了しました。")
 
 def handle_report():
-    """23:55 日次レポート・激動時間帯解析送信および一括削除"""
+    """23:55 (JST) 日次レポート・激動時間帯解析送信および一括削除"""
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M")
+
+    send_debug_log(f"🚀 [{today_str} {time_str}] 23:55 日次締め処理（レポート・解析・ログ削除）を開始しました。")
 
     current_data = fetch_coincheck_full_data()
     if not current_data:
-        send_debug_log("エラー: 日次レポート用データの取得に失敗しました。")
+        send_debug_log(f"🚨 [{today_str} {time_str}] エラー: 日次レポート用データの取得に失敗しました。")
         return
 
     current_prices = {pair: data["last"] for pair, data in current_data.items()}
@@ -64,11 +72,13 @@ def handle_report():
     analytics_data = analyze_volatile_timeframes()
     if analytics_data:
         send_analytics_report(analytics_data, today_str)
+    else:
+        send_debug_log(f"⚠️ [{today_str} {time_str}] 激動時間帯解析データが空のため、アナリティクス送信をスキップしました。")
 
-    # 3. 始値データ更新保存 ＆ 一時ログ削除
+    # 3. 翌日用始値データ更新保存 ＆ 一時ログ削除
     save_data({"date": today_str, "open_prices": current_prices})
     cleanup_history_file()
-    send_debug_log(f"[{today_str}] 全レポート送信およびログクリーンアップが完了しました。")
+    send_debug_log(f"🎉 [{today_str} {time_str}] 全レポートの送信、翌日用データ保存、およびログクリーンアップが正常に完了しました。")
 
 def main():
     parser = argparse.ArgumentParser(description="Crypto Market Monitor CLI")
