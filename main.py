@@ -9,11 +9,18 @@ from src.discord import send_daily_report_cards, send_analytics_report, send_deb
 from src.storage import load_saved_data, save_data
 
 def handle_snapshot():
-    """30分スナップショット処理（日付跨ぎの始値自動セット機能付き）"""
+    """30分スナップショット処理（日付跨ぎの始値自動セット＆00:00ログ出力対応）"""
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M")
     
+    saved_data = load_saved_data()
+    is_new_day = (saved_data.get("date") != today_str)
+
+    # 00:00（新しい日付の最初のリクエスト）の場合、データ収集開始ログを出力
+    if is_new_day:
+        send_debug_log(f"🌅 [{today_str} {time_str}] 新しい日付を検知しました。00:00 データ収集および始値セット処理を開始します。")
+
     current_data = fetch_coincheck_full_data()
     if not current_data:
         send_debug_log(f"⚠️ [{today_str} {time_str}] エラー: スナップショット用データの取得に失敗しました。")
@@ -23,11 +30,10 @@ def handle_snapshot():
     record_30min_snapshot(current_data, time_str)
 
     # 2. 【日付跨ぎ判定】保存データの日付が「今日」でなければ、自動的に始値を更新して保存
-    saved_data = load_saved_data()
-    if saved_data.get("date") != today_str:
+    if is_new_day:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
-        send_debug_log(f"ℹ️ [{today_str} {time_str}] 新しい日付を検知したため、始値データを自動更新・セットしました。")
+        send_debug_log(f"✅ [{today_str} {time_str}] 当日の始値データセットおよび 00:00 スナップショットの記録が完了しました。")
 
 def handle_ranking():
     """23:50 (JST) 独立騰落率ランキング送信"""
