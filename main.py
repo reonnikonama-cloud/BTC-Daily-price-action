@@ -9,16 +9,18 @@ from src.discord import send_daily_report_cards, send_analytics_report, send_deb
 from src.storage import load_saved_data, save_data
 
 def handle_snapshot():
-    """30分スナップショット処理（日付跨ぎの始値自動セット＆00:00ログ出力対応）"""
+    """30分スナップショット処理（日中の始値上書き防衛ロジック追加版）"""
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M")
     
     saved_data = load_saved_data()
-    is_new_day = (saved_data.get("date") != today_str)
+    saved_date = saved_data.get("date")
 
-    # 00:00（新しい日付の最初のリクエスト）の場合、データ収集開始ログを出力
-    if is_new_day:
+    # 【防衛ロジック】新しい日付 かつ 「00:00〜00:10の間」のみ真の00:00跨ぎと判定
+    is_true_midnight = (saved_date != today_str) and (now.hour == 0 and now.minute <= 10)
+
+    if is_true_midnight:
         send_debug_log(f"🌅 [{today_str} {time_str}] 新しい日付を検知しました。00:00 データ収集および始値セット処理を開始します。")
 
     current_data = fetch_coincheck_full_data()
@@ -29,11 +31,15 @@ def handle_snapshot():
     # 1. 30分スナップショットログを追記
     record_30min_snapshot(current_data, time_str)
 
-    # 2. 【日付跨ぎ判定】保存データの日付が「今日」でなければ、自動的に始値を更新して保存
-    if is_new_day:
+    # 2. 深夜 00:00 時のみ始値（open_prices）をセットして保存
+    if is_true_midnight:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
         send_debug_log(f"✅ [{today_str} {time_str}] 当日の始値データセットおよび 00:00 スナップショットの記録が完了しました。")
+    elif saved_date != today_str:
+        # 日中に初回起動・リカバリ等で日付がズレていた場合、始値を上書きせずに日付のみ補正
+        saved_data["date"] = today_str
+        save_data(saved_data)
 
 def handle_ranking():
     """23:50 (JST) 独立騰落率ランキング送信"""
