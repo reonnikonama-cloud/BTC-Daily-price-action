@@ -17,8 +17,8 @@ def handle_snapshot():
     saved_data = load_saved_data()
     saved_date = saved_data.get("date")
 
-    # 【防衛ロジック】新しい日付 かつ 「00:00〜00:10の間」のみ真の00:00跨ぎと判定
-    is_true_midnight = (saved_date != today_str) and (now.hour == 0 and now.minute <= 10)
+    # 【防衛ロジック】GitHub ActionsのCron遅延を考慮し「0時台 (00:00〜00:59)」を真の00:00跨ぎと判定
+    is_true_midnight = (saved_date != today_str) and (now.hour == 0)
 
     if is_true_midnight:
         send_debug_log(f"🌅 [{today_str} {time_str}] 新しい日付を検知しました。00:00 データ収集および始値セット処理を開始します。")
@@ -31,7 +31,7 @@ def handle_snapshot():
     # 1. 30分スナップショットログを追記
     record_30min_snapshot(current_data, time_str)
 
-    # 2. 深夜 00:00 時のみ始値（open_prices）をセットして保存
+    # 2. 深夜 00:00 時台のみ始値（open_prices）をセットして保存
     if is_true_midnight:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
