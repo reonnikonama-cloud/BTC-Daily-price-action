@@ -25,8 +25,8 @@ def handle_snapshot():
     # 1. 5分毎スナップショットログを追記
     record_30min_snapshot(current_data, time_str)
 
-    # 2. 保存されている日付が今日と異なる場合（00:00の初回やCron遅延時含む）、始値と日付をセット
-    if saved_date != today_str:
+    # 2. 日付未設定、または保存日付が過去日の場合のみ始値を更新（文字列比較で確実化）
+    if not saved_date or saved_date < today_str:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
         send_debug_log(f"🌅 [{today_str} {time_str}] 新規日付 ({today_str}) を検知。当日の始値データをセットしました。")
