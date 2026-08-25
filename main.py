@@ -9,7 +9,7 @@ from src.discord import send_daily_report_cards, send_analytics_report, send_deb
 from src.storage import load_saved_data, save_data
 
 def handle_snapshot():
-    """30分スナップショット処理（日中の始値上書き防衛ロジック追加版）"""
+    """5分毎スナップショット処理（日中の始値上書き防衛ロジック対応）"""
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M")
@@ -17,8 +17,8 @@ def handle_snapshot():
     saved_data = load_saved_data()
     saved_date = saved_data.get("date")
 
-    # 【防衛ロジック】GitHub ActionsのCron遅延を考慮し「0時台 (00:00〜00:59)」を真の00:00跨ぎと判定
-    is_true_midnight = (saved_date != today_str) and (now.hour == 0)
+    # 【防衛ロジック】GitHub ActionsのCron遅延を考慮し「0時台かつ開始5分枠 (00:00〜00:05)」を真の00:00跨ぎと判定
+    is_true_midnight = (saved_date != today_str) and (now.hour == 0 and now.minute <= 5)
 
     if is_true_midnight:
         send_debug_log(f"🌅 [{today_str} {time_str}] 新しい日付を検知しました。00:00 データ収集および始値セット処理を開始します。")
@@ -28,10 +28,10 @@ def handle_snapshot():
         send_debug_log(f"⚠️ [{today_str} {time_str}] エラー: スナップショット用データの取得に失敗しました。")
         return
 
-    # 1. 30分スナップショットログを追記
+    # 1. 5分毎スナップショットログを追記
     record_30min_snapshot(current_data, time_str)
 
-    # 2. 深夜 00:00 時台のみ始値（open_prices）をセットして保存
+    # 2. 深夜 00:00（5分枠内）のみ始値（open_prices）をセットして保存
     if is_true_midnight:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
@@ -94,7 +94,7 @@ def handle_report():
 
 def main():
     parser = argparse.ArgumentParser(description="Crypto Market Monitor CLI")
-    parser.add_argument("--snapshot", action="store_true", help="30分スナップショット取得")
+    parser.add_argument("--snapshot", action="store_true", help="5分スナップショット取得")
     parser.add_argument("--ranking", action="store_true", help="独立騰落率ランキング送信")
     parser.add_argument("--report", action="store_true", help="日次レポート・解析送信およびログ削除")
     args = parser.parse_args()
