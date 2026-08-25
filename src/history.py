@@ -22,10 +22,12 @@ def record_30min_snapshot(current_data, time_str):
     print(f"[{time_str}] 30分スナップショットを記録しました。")
 
 def cleanup_history_file():
-    """分析終了後、一時ログファイルを完全削除（リポジトリ容量節約）"""
+    """分析終了後、一時ログファイルの中身をクリア（ファイル削除によるGit追跡外れを防ぐ）"""
     if os.path.exists(HISTORY_FILE):
         try:
-            os.remove(HISTORY_FILE)
-            print("本日の履歴データ (data/history.json) を一括削除・クリーンアップしました。")
+            # os.remove() ではなく空のJSON構造で上書きする
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump({}, f, indent=2, ensure_ascii=False)
+            print("本日の履歴データ (data/history.json) を一括クリア・クリーンアップしました。")
         except Exception as e:
-            print(f"履歴ファイル削除エラー: {e}")
+            print(f"履歴ファイルクリーンアップエラー: {e}")
