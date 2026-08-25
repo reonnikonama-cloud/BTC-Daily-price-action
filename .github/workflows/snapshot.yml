@@ -1,11 +1,14 @@
-name: 30min Snapshot Collector
+name: 5min Snapshot Collector
 
 on:
-  workflow_dispatch:  # cron-job.org からの呼び出し専用にするため schedule は削除
+  workflow_dispatch:  # cron-job.org 等からの呼び出し用
 
 jobs:
   run-snapshot:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # GitHubへのプッシュ権限を明示的に付与
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -20,3 +23,11 @@ jobs:
 
       - name: Run Snapshot
         run: python main.py --snapshot
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/
+          git commit -m "Update snapshot and price data" || exit 0
+          git push
