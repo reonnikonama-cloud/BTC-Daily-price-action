@@ -9,19 +9,13 @@ from src.discord import send_daily_report_cards, send_analytics_report, send_deb
 from src.storage import load_saved_data, save_data
 
 def handle_snapshot():
-    """5分毎スナップショット処理（日中の始値上書き防衛ロジック対応）"""
+    """5分毎スナップショット処理（日付変更時の始値自動セット対応）"""
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M")
     
     saved_data = load_saved_data()
     saved_date = saved_data.get("date")
-
-    # 【防衛ロジック】GitHub ActionsのCron遅延を考慮し「0時台かつ開始5分枠 (00:00〜00:05)」を真の00:00跨ぎと判定
-    is_true_midnight = (saved_date != today_str) and (now.hour == 0 and now.minute <= 5)
-
-    if is_true_midnight:
-        send_debug_log(f"🌅 [{today_str} {time_str}] 新しい日付を検知しました。00:00 データ収集および始値セット処理を開始します。")
 
     current_data = fetch_coincheck_full_data()
     if not current_data:
@@ -31,15 +25,11 @@ def handle_snapshot():
     # 1. 5分毎スナップショットログを追記
     record_30min_snapshot(current_data, time_str)
 
-    # 2. 深夜 00:00（5分枠内）のみ始値（open_prices）をセットして保存
-    if is_true_midnight:
+    # 2. 保存されている日付が今日と異なる場合（00:00の初回やCron遅延時含む）、始値と日付をセット
+    if saved_date != today_str:
         current_prices = {pair: data["last"] for pair, data in current_data.items()}
         save_data({"date": today_str, "open_prices": current_prices})
-        send_debug_log(f"✅ [{today_str} {time_str}] 当日の始値データセットおよび 00:00 スナップショットの記録が完了しました。")
-    elif saved_date != today_str:
-        # 日中に初回起動・リカバリ等で日付がズレていた場合、始値を上書きせずに日付のみ補正
-        saved_data["date"] = today_str
-        save_data(saved_data)
+        send_debug_log(f"🌅 [{today_str} {time_str}] 新規日付 ({today_str}) を検知。当日の始値データをセットしました。")
 
 def handle_ranking():
     """23:50 (JST) 独立騰落率ランキング送信"""
