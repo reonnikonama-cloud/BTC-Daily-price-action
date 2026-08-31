@@ -2175,21 +2175,21 @@
     "wbtc_jpy": 9900000.0
   },
   "07:55": {
-    "btc_jpy": 12557577.0,
-    "eth_jpy": 395490.0,
-    "etc_jpy": 1204.0,
+    "btc_jpy": 12555315.0,
+    "eth_jpy": 394724.0,
+    "etc_jpy": 1077.33,
     "lsk_jpy": 17.23,
-    "xrp_jpy": 222.0,
+    "xrp_jpy": 220.733,
     "xem_jpy": 0.1,
-    "bch_jpy": 39869.0,
+    "bch_jpy": 39021.0,
     "mona_jpy": 9.6,
-    "iost_jpy": 0.0988,
-    "fnct_jpy": 0.05,
+    "iost_jpy": 0.0974,
+    "fnct_jpy": 0.048,
     "chz_jpy": 2.16,
-    "dai_jpy": 160.15,
-    "avax_jpy": 1159.07,
-    "shib_jpy": 0.000825,
-    "wbtc_jpy": 12750000.0
+    "dai_jpy": 158.526,
+    "avax_jpy": 1156.51,
+    "shib_jpy": 0.000724,
+    "wbtc_jpy": 9900000.0
   },
   "08:00": {
     "btc_jpy": 12548000.0,
