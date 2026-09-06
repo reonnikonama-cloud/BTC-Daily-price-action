@@ -1,20 +1,20 @@
 {
-  "date": "2026-09-06",
+  "date": "2026-09-07",
   "open_prices": {
-    "btc_jpy": 12473671.0,
-    "eth_jpy": 384310.0,
-    "etc_jpy": 1160.0,
+    "btc_jpy": 12437255.0,
+    "eth_jpy": 387575.0,
+    "etc_jpy": 1210.0,
     "lsk_jpy": 15.93,
-    "xrp_jpy": 221.315,
+    "xrp_jpy": 220.886,
     "xem_jpy": 0.0821,
-    "bch_jpy": 38459.0,
-    "mona_jpy": 10.01,
-    "iost_jpy": 0.096,
-    "fnct_jpy": 0.046,
+    "bch_jpy": 40000.0,
+    "mona_jpy": 10.26,
+    "iost_jpy": 0.121,
+    "fnct_jpy": 0.037,
     "chz_jpy": 2.11,
     "dai_jpy": 157.199,
-    "avax_jpy": 1181.82,
-    "shib_jpy": 0.000846,
+    "avax_jpy": 1202.05,
+    "shib_jpy": 0.000845,
     "wbtc_jpy": 12000000.0
   }
 }
