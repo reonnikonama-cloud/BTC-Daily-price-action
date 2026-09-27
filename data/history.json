@@ -6509,5 +6509,22 @@
     "avax_jpy": 1701.0,
     "shib_jpy": 0.00093,
     "wbtc_jpy": 10100000.0
+  },
+  "04:22": {
+    "btc_jpy": 13339093.0,
+    "eth_jpy": 424215.0,
+    "etc_jpy": 1491.83,
+    "lsk_jpy": 50.5,
+    "xrp_jpy": 241.403,
+    "xem_jpy": 0.0851,
+    "bch_jpy": 52625.0,
+    "mona_jpy": 9.6,
+    "iost_jpy": 0.152,
+    "fnct_jpy": 0.056,
+    "chz_jpy": 2.7,
+    "dai_jpy": 155.988,
+    "avax_jpy": 1710.0,
+    "shib_jpy": 0.000926,
+    "wbtc_jpy": 10100000.0
   }
 }
